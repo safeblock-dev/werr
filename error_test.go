@@ -15,7 +15,7 @@ func TestWrapError_Error(t *testing.T) {
 
 	t.Run("with message", func(t *testing.T) {
 		t.Parallel()
-		wrappedErr := wrapError{
+		wrappedErr := wrappedError{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -29,14 +29,14 @@ func TestWrapError_Error(t *testing.T) {
 
 	t.Run("when wrap chain", func(t *testing.T) {
 		t.Parallel()
-		subWrappedErr := wrapError{
+		subWrappedErr := wrappedError{
 			file:     "main.go",
 			funcName: "main.main2",
 			line:     84,
 			err:      err,
 			msg:      "",
 		}
-		wrappedErr := wrapError{
+		wrappedErr := wrappedError{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -50,7 +50,7 @@ func TestWrapError_Error(t *testing.T) {
 
 	t.Run("without message", func(t *testing.T) {
 		t.Parallel()
-		wrappedErr := wrapError{
+		wrappedErr := wrappedError{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
