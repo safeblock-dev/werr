@@ -11,15 +11,11 @@ import (
 func TestDefaultErrorStackMarshaler(t *testing.T) {
 	t.Parallel()
 
-	caller := "main.go"
-	err := errors.New("example error")
-	funcName := "TestFunction"
-	msg := "custom message"
+	file, line, funcName := "main.go", 42, "main.TestFunction"
+	err, msg := errors.New("example error"), "custom message"
 
-	result := werr.DefaultErrorStackMarshaler(caller, err, funcName, msg)
+	format := werr.DefaultErrorStackMarshaler(file, line, funcName, err, msg)
 
-	require.Contains(t, result, caller)
-	require.Contains(t, result, funcName)
-	require.Contains(t, result, msg)
-	require.Contains(t, result, err.Error())
+	exp := "main/main.go:42\tTestFunction()\tcustom message\nexample error"
+	require.Equal(t, exp, format)
 }

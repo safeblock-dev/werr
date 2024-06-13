@@ -1,32 +1,23 @@
 package werr
 
 import (
-	"path"
 	"runtime"
-	"strconv"
-	"strings"
 )
 
 const defaultCallerSkip = 3
 
-func caller(skip int) (string, string) {
-	// make caller func invisible
+func caller(skip int) (funcName string, file string, line int) {
+	// skip current func call.
 	if skip < 1 {
 		skip = 1
 	}
 
 	pc, file, line, ok := runtime.Caller(skip)
 	if !ok {
-		return "", ""
+		return "", "", 0
 	}
 
-	fnName := runtime.FuncForPC(pc).Name()
-	ix := strings.LastIndex(fnName, ".")
-	sourceCaller := fnName[0:ix] + "/" + path.Base(file) + ":" + strconv.Itoa(line)
+	funcName = runtime.FuncForPC(pc).Name()
 
-	if len(fnName) > ix {
-		return sourceCaller, fnName[ix+1:] + "()"
-	}
-
-	return sourceCaller, ""
+	return funcName, file, line
 }

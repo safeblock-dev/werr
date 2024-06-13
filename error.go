@@ -4,23 +4,55 @@ import (
 	"errors"
 )
 
-// wrapError represents an error with additional context such as caller, function name, and message.
+type WrappedError interface {
+	Error
+	Wrapped
+}
+
+type Wrapped interface {
+	Cause() error
+	Unwrap() error
+}
+
+type Error interface {
+	File() string
+	FuncName() string
+	Line() int
+	Msg() string
+}
+
+var _ WrappedError = (*wrapError)(nil)
+
+// wrapError represents an error with additional context such as funcName, file, line and msg.
 type wrapError struct {
-	caller   string
-	err      error
+	// funcName function name in the format "<pkg>.<name>", e.g. "main.main".
 	funcName string
-	msg      string
+
+	// file and line are the file name and line number of the
+	// location in this frame. For non-leaf frames, this will be
+	// the location of a call. These may be the empty string and
+	// zero, respectively, if not known.
+	file string
+	line int
+
+	// err error for which you want to save its funcName, file, line and msg.
+	err error
+
+	// msg optional message to help analyze the error.
+	msg string
 }
 
 // newError creates a new wrapped error with caller information and additional message.
 func newError(err error, msg string) error {
-	sourceCaller, funcName := caller(defaultCallerSkip)
+	funcName, file, line := caller(defaultCallerSkip)
 
 	return wrapError{
-		caller:   sourceCaller,
-		err:      err,
-		msg:      msg,
+		file:     file,
 		funcName: funcName,
+		line:     line,
+
+		err: err,
+		msg: msg,
 	}
 }
 
@@ -65,12 +97,12 @@ func UnwrapAll(err error) error {
 
 // Error returns a string representation of the wrapped error.
 func (e wrapError) Error() string {
-	return errorStackMarshaler(e.caller, e.err, e.funcName, e.msg)
+	return DefaultErrorStackMarshaler(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
-// ErrorFormat returns a custom formatted string representation of the wrapped error.
-func (e wrapError) ErrorFormat(fn ErrorStackMarshalerFn) string {
-	return fn(e.caller, e.err, e.funcName, e.msg)
+// Format returns a custom formatted string representation of the wrapped error.
+func (e wrapError) Format(fn ErrorStackMarshalerFn) string {
+	return fn(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
 // Unwrap returns the underlying error wrapped by this structure.
@@ -89,12 +121,19 @@ func (e wrapError) Cause() error {
 	return e.err
 }
 
-// Caller returns the caller information associated with the wrapped error.
-func (e wrapError) Caller() string {
-	return e.caller
+// File returns the file information associated with the wrapped error.
+func (e wrapError) File() string {
+	return e.file
+}
+
+// Line returns the line information associated with the wrapped error.
+func (e wrapError) Line() int {
+	return e.line
 }
 
 // FuncName returns the function name associated with the wrapped error.
+//
+// Example: "main.main"
 func (e wrapError) FuncName() string {
 	return e.funcName
 }

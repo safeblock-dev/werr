@@ -16,45 +16,49 @@ func TestWrapError_Error(t *testing.T) {
 	t.Run("with message", func(t *testing.T) {
 		t.Parallel()
 		wrappedErr := wrapError{
-			caller:   "caller",
+			file:     "main.go",
+			funcName: "main.main",
+			line:     42,
 			err:      err,
-			funcName: "function",
 			msg:      "additional message",
 		}
 
-		const expected = "caller\tfunction\tadditional message\noriginal error"
-		require.Equal(t, expected, wrappedErr.Error())
+		exp := "main/main.go:42\tmain()\tadditional message\noriginal error"
+		require.Equal(t, exp, wrappedErr.Error())
 	})
 
 	t.Run("when wrap chain", func(t *testing.T) {
 		t.Parallel()
 		subWrappedErr := wrapError{
-			caller:   "subCaller",
+			file:     "main.go",
+			funcName: "main.main2",
+			line:     84,
 			err:      err,
-			funcName: "subFunction",
 			msg:      "",
 		}
 		wrappedErr := wrapError{
-			caller:   "caller",
+			file:     "main.go",
+			funcName: "main.main",
+			line:     42,
 			err:      subWrappedErr,
-			funcName: "function",
 			msg:      "additional message",
 		}
 
-		const expected = "caller\tfunction\tadditional message\nsubCaller\tsubFunction\noriginal error"
-		require.Equal(t, expected, wrappedErr.Error())
+		exp := "main/main.go:42\tmain()\tadditional message\nmain/main.go:84\tmain2()\noriginal error"
+		require.Equal(t, exp, wrappedErr.Error())
 	})
 
 	t.Run("without message", func(t *testing.T) {
 		t.Parallel()
 		wrappedErr := wrapError{
-			caller:   "caller",
+			file:     "main.go",
+			funcName: "main.main",
+			line:     42,
 			err:      err,
-			funcName: "function",
 		}
 
-		const expected = "caller\tfunction\noriginal error"
-		require.Equal(t, expected, wrappedErr.Error())
+		exp := "main/main.go:42\tmain()\noriginal error"
+		require.Equal(t, exp, wrappedErr.Error())
 	})
 }
 
@@ -69,7 +73,7 @@ func TestCause(t *testing.T) {
 		err3 := newError(err2, "wrap level 1")
 		err4 := newError(err3, "wrap level 2")
 
-		require.EqualError(t, Cause(err4), err1.Error())
+		require.EqualError(t, Cause(err4), err2.Error())
 	})
 
 	t.Run("when nil", func(t *testing.T) {
