@@ -1,13 +1,5 @@
 package werr
 
-import (
-	"errors"
-)
-
-type UnwrapErr interface {
-	Unwrap() error
-}
-
 type wrapError struct {
 	caller   string
 	err      error
@@ -26,26 +18,39 @@ func newError(err error, msg string) error {
 	}
 }
 
-// Unwrap recursively traverses the wrapped errors and returns the innermost non-wrapped error.
-// If the input error (err) is not a wrapped error, it is returned unchanged.
+// Unwrap returns the result of calling the Unwrap method on err,
+// if err's type contains an Unwrap method returning error.
+// Otherwise, Unwrap returns nil.
 func Unwrap(err error) error {
-	var wErr wrapError
-	for errors.As(err, &wErr) {
-		err = wErr.Unwrap()
+	u, ok := err.(interface{ Unwrap() error })
+	if !ok {
+		return nil
 	}
 
-	return err
+	return u.Unwrap()
 }
 
-// UnwrapAll recursively traverses the wrapped errors and returns the innermost non-wrapped error.
-// If the input error (err) is not a wrapped error, it is returned unchanged.
-func UnwrapAll(err error) error {
-	u, ok := err.(UnwrapErr)
-	if ok {
-		return UnwrapAll(u.Unwrap())
-	}
+// Cause recursively traverses the wrapped errors and returns the innermost non-wrapped error.
+// It checks for both Cause() and Unwrap() methods.
+func Cause(err error) error {
+	for {
+		// Check if the error implements the causer interface
+		if e, ok := err.(interface{ Cause() error }); ok {
+			err = e.Cause()
 
-	return err
+			continue
+		}
+
+		// Check if the error implements the Unwrap() method
+		if e, ok := err.(interface{ Unwrap() error }); ok {
+			err = e.Unwrap()
+
+			continue
+		}
+
+		// If neither interface is implemented, return the error
+		return err
+	}
 }
 
 func (e wrapError) Error() string {
@@ -60,12 +65,12 @@ func (e wrapError) Unwrap() error {
 	return e.err
 }
 
-func (e wrapError) Caller() string {
-	return e.caller
+func (e wrapError) Cause() error {
+	return e.err
 }
 
-func (e wrapError) RowError() error {
-	return e.err
+func (e wrapError) Caller() string {
+	return e.caller
 }
 
 func (e wrapError) FuncName() string {

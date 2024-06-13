@@ -8,10 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getErr0() error { return errors.New("example nested error") }
-func getErr1() error { return Wrap(getErr0()) }
-func getErr2() error { return Wrap(getErr1()) }
-
 func TestWrapError_Error(t *testing.T) {
 	t.Parallel()
 
@@ -26,7 +22,7 @@ func TestWrapError_Error(t *testing.T) {
 			msg:      "additional message",
 		}
 
-		expected := "caller\tfunction\tadditional message\noriginal error"
+		const expected = "caller\tfunction\tadditional message\noriginal error"
 		require.Equal(t, expected, wrappedErr.Error())
 	})
 
@@ -45,7 +41,7 @@ func TestWrapError_Error(t *testing.T) {
 			msg:      "additional message",
 		}
 
-		expected := "caller\tfunction\tadditional message\nsubCaller\tsubFunction\noriginal error"
+		const expected = "caller\tfunction\tadditional message\nsubCaller\tsubFunction\noriginal error"
 		require.Equal(t, expected, wrappedErr.Error())
 	})
 
@@ -57,8 +53,36 @@ func TestWrapError_Error(t *testing.T) {
 			funcName: "function",
 		}
 
-		expected := "caller\tfunction\noriginal error"
+		const expected = "caller\tfunction\noriginal error"
 		require.Equal(t, expected, wrappedErr.Error())
+	})
+}
+
+func TestCause(t *testing.T) {
+	t.Parallel()
+
+	t.Run("when wrap chain", func(t *testing.T) {
+		t.Parallel()
+
+		err1 := errors.New("original error")
+		err2 := fmt.Errorf("fmt wrap: %w", err1)
+		err3 := newError(err2, "wrap level 1")
+		err4 := newError(err3, "wrap level 2")
+
+		require.EqualError(t, Cause(err4), err1.Error())
+	})
+
+	t.Run("when nil", func(t *testing.T) {
+		t.Parallel()
+
+		require.NoError(t, Cause(nil))
+	})
+
+	t.Run("when without wrap", func(t *testing.T) {
+		t.Parallel()
+
+		errWithoutWrap := errors.New("error without wrap")
+		require.ErrorIs(t, Cause(errWithoutWrap), errWithoutWrap)
 	})
 }
 
@@ -70,37 +94,25 @@ func TestUnwrap(t *testing.T) {
 
 		err1 := errors.New("original error")
 		err2 := fmt.Errorf("fmt wrap: %w", err1)
-		err3 := Wrap(err2)
-		err4 := Wrap(err3)
+		err3 := newError(err2, "wrap level 1")
+		err4 := newError(err3, "wrap level 2")
 
-		require.EqualError(t, err2, Unwrap(err4).Error())
-	})
-
-	t.Run("unwrap all", func(t *testing.T) {
-		t.Parallel()
-
-		err1 := errors.New("original error")
-		err2 := fmt.Errorf("fmt wrap: %w", err1)
-		err3 := Wrap(err2)
-		err4 := Wrap(err3)
-
-		require.EqualError(t, err1, UnwrapAll(err4).Error())
-	})
-
-	t.Run("nested trace", func(t *testing.T) {
-		t.Parallel()
-
-		require.Equal(t, "github.com/safeblock-dev/werr/error_test.go:13\tgetErr2()\ngithub.com/safeblock-dev/werr/error_test.go:12\tgetErr1()\nexample nested error", getErr2().Error()) //nolint: lll // test
+		require.EqualError(t, Unwrap(err4), err3.Error())
+		require.EqualError(t, Unwrap(err3), err2.Error())
+		require.EqualError(t, Unwrap(err2), err1.Error())
+		require.NoError(t, Unwrap(err1))
 	})
 
 	t.Run("when nil", func(t *testing.T) {
 		t.Parallel()
+
 		require.NoError(t, Unwrap(nil))
 	})
 
 	t.Run("when without wrap", func(t *testing.T) {
 		t.Parallel()
-		errWithoutUnwrap := errors.New("error without Unwrap")
-		require.ErrorIs(t, Unwrap(errWithoutUnwrap), errWithoutUnwrap)
+
+		errWithoutWrap := errors.New("error without wrap")
+		require.NoError(t, Unwrap(errWithoutWrap))
 	})
 }
