@@ -29,9 +29,20 @@ func Unwrap(err error) error {
 	return errors.Unwrap(err)
 }
 
-// Cause recursively traverses the wrapped errors and returns the innermost non-wrapped error.
-// It checks for both Cause() and Unwrap() methods.
+// Cause returns the cause of the error if it is a wrapError.
+// If the error is not a wrapError, it returns the original error.
 func Cause(err error) error {
+	var wErr wrapError
+	if errors.As(err, &wErr) {
+		return wErr.Cause()
+	}
+
+	return err
+}
+
+// UnwrapAll recursively traverses the wrapped errors and returns the innermost non-wrapped error.
+// It checks for both Cause() and Unwrap() methods.
+func UnwrapAll(err error) error {
 	for {
 		// Check if the error implements the Cause() method
 		if e, ok := err.(interface{ Cause() error }); ok {
@@ -67,7 +78,8 @@ func (e wrapError) Unwrap() error {
 	return e.err
 }
 
-// Cause returns the cause of the wrapped error by recursively checking for Cause() and Unwrap() methods.
+// Cause returns the cause of the wrapped error by recursively checking for wrapError type
+// and calling Unwrap() on it.
 func (e wrapError) Cause() error {
 	var wErr wrapError
 	for errors.As(e.err, &wErr) {
