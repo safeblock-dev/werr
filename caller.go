@@ -6,7 +6,15 @@ import (
 
 const defaultCallerSkip = 3
 
-func caller(skip int) (funcName string, file string, line int) {
+// caller returns the name of the calling function, its file path,
+// and line number after skipping `skip` levels in the call stack.
+//
+// Example output:
+//
+//	funcName: "main.main"
+//	file: "/path/to/your/file/main.go"
+//	line: 42
+func caller(skip int) (string, string, int) {
 	// skip current func call.
 	if skip < 1 {
 		skip = 1
@@ -17,7 +25,7 @@ func caller(skip int) (funcName string, file string, line int) {
 		return "", "", 0
 	}
 
-	funcName = runtime.FuncForPC(pc).Name()
+	funcName := runtime.FuncForPC(pc).Name()
 
 	return funcName, file, line
 }

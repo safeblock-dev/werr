@@ -25,21 +25,11 @@ var _ WrappedError = (*wrappedError)(nil)
 
 // wrappedError represents an error with additional context such as funcName, file, line and msg.
 type wrappedError struct {
-	// funcName function name in the format "<pkg>.<name>", e.g. "main.main".
-	funcName string
-
-	// file and line are the file name and line number of the
-	// location in this frame. For non-leaf frames, this will be
-	// the location of a call. These may be the empty string and
-	// zero, respectively, if not known.
-	file string
-	line int
-
-	// err error for which you want to save its funcName, file, line and msg.
-	err error
-
-	// msg optional message to help analyze the error.
-	msg string
+	funcName string // Function name in the format "<pkg>.<name>", e.g. "main.main".
+	file     string // File name of the location in this frame.
+	line     int    // Line number of the location in this frame.
+	err      error  // The original error.
+	msg      string // Optional message to help analyze the error.
 }
 
 // newError creates a new wrapped error with caller information and additional message.
@@ -66,8 +56,20 @@ func Unwrap(err error) error {
 	return err
 }
 
+// UnwrapAll function recursively unwraps an error that implements the Unwrap() error method,
+// effectively retrieving the root cause error from a chain of wrapped errors.
+func UnwrapAll(err error) error {
+	for {
+		u, ok := err.(interface{ Unwrap() error })
+		if !ok {
+			return err
+		}
+
+		err = u.Unwrap()
+	}
+}
+
 // Cause returns the cause of the error if it is a wrappedError.
-// If the error is not a wrappedError, it returns the original error.
 func Cause(err error) error {
 	var wErr wrappedError
 	if errors.As(err, &wErr) {
@@ -77,13 +79,23 @@ func Cause(err error) error {
 	return err
 }
 
+// AsWrap checks if the error is a wrappedError and returns it.
+func AsWrap(err error) (WrappedError, bool) {
+	var wErr wrappedError
+	if errors.As(err, &wErr) {
+		return wErr, true
+	}
+
+	return nil, false
+}
+
 // Error returns a string representation of the wrapped error.
 func (e wrappedError) Error() string {
-	return DefaultErrorStackMarshaler(e.file, e.line, e.funcName, e.err, e.msg)
+	return defaultFormatter(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
 // Format returns a custom formatted string representation of the wrapped error.
-func (e wrappedError) Format(fn ErrorStackMarshalerFn) string {
+func (e wrappedError) Format(fn FormatFn) string {
 	return fn(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
@@ -115,7 +127,7 @@ func (e wrappedError) Line() int {
 
 // FuncName returns the function name associated with the wrapped error.
 //
-// Example: "main.main"
+// Example: "main.main".
 func (e wrappedError) FuncName() string {
 	return e.funcName
 }

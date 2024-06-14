@@ -6,17 +6,10 @@ import (
 	"strings"
 )
 
-//nolint:gochecknoglobals // for custom setting
-var (
-	// errorStackMarshaler extract the stack from err.
-	errorStackMarshaler ErrorStackMarshalerFn = DefaultErrorStackMarshaler
-)
+type FormatFn func(file string, line int, funcName string, err error, msg string) string
 
-type ErrorStackMarshalerFn func(file string, line int, funcName string, err error, msg string) string
-
-func DefaultErrorStackMarshaler(file string, line int, funcName string, err error, msg string) string {
+func defaultFormatter(file string, line int, funcName string, err error, msg string) string {
 	idx := strings.LastIndex(funcName, ".")
-
 	pkg := funcName[:idx]
 
 	var fn string
