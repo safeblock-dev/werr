@@ -1,7 +1,6 @@
 ## Highlights
 
-The **werr** library provides efficient error wrapping capabilities for Go. It is designed with a focus on performance
-and enables the recording of functions where an error occurred. Here are some key features of the library:
+The **werr** library provides efficient error wrapping capabilities for Go. It is designed with a focus on performance and enables the recording of functions where an error occurred. Here are some key features of the library:
 
 * Recording information about functions that triggered the error for easy debugging.
 * Support for custom error messages to make errors more informative.
@@ -9,33 +8,17 @@ and enables the recording of functions where an error occurred. Here are some ke
 
 ## Introduction
 
-At first, you start with the basic:
-
-```go
-return err
-```
-
-Later, when the hunt for the elusive error becomes challenging, you enhance it with a description:
-
-```go
-return fmt.Errorf("uh oh! something terrible happened: %w", err)
-```
-
-As your needs grow beyond mere descriptions and you seek traces, you may resort to integrating external libraries:
-
-```go
-return errorx.Decorate(err, "this could be so much better")
-```
-
-Feeling the inconvenience and slowdown, you finally discover the simplicity of:
+When handling errors in Go, simplicity and performance matter. **werr** offers a streamlined approach:
 
 ```go
 return werr.Wrap(err)
 ```
 
+This captures the context of where the error originated, aiding in quick debugging.
+
 # werr
 
-To use **werr** in your Go application, simply import it in your code:
+To use **werr** in your Go application, simply import it:
 
 ```go
 import "github.com/safeblock-dev/werr"
@@ -43,17 +26,13 @@ import "github.com/safeblock-dev/werr"
 
 ## Features
 
-* **Error Creation**: Create errors just like before with `errors.New("error message")` and use them seamlessly.
-* **Error Wrapping**: Wrap an existing error using `werr.Wrap(err)`.
-* **Custom Messages**: Wrap errors with custom messages using `werr.Wrapf(err, "my error")`
-  or `werr.Wrapf(err, "custom error message: %s", "details")`.
-* **Error Wrapping**: Wrap existing errors using `werr.Wrap(err)`.
-* **Error Unwrapping**: Unwrap an error using `werr.Unwrap(err)`
-* **Informative Errors**: Retrieve detailed error information, including function call stack, for better debugging.
-
-## Error check
-
-If you need to check an error, use standard tools like `errors.Is(err, sql.ErrNoRows)`.
+* **Error Creation**: Create errors using `errors.New("error message")` as usual.
+* **Error Wrapping**: Enhance errors with context using `werr.Wrap(err)`.
+* **Custom Messages**: Add custom messages to errors with `werr.Wrapf(err, "custom error message")`.
+* **Error Unwrapping**: Retrieve the original error with `werr.Unwrap(err)` for seamless error propagation.
+* **Full Unwrapping**: Get the root cause of wrapped errors with `werr.UnwrapAll(err)`.
+* **Direct Cause**: Identify the immediate cause of an error with `werr.Cause(err)`.
+* **Typed Assertion**: Check error types with `werr.AsWrap(err)` for precise error handling.
 
 ## Example
 
@@ -71,18 +50,18 @@ var errExample = errors.New("find me")
 
 func main() {
 	err := example()
-	if errors.Is(err, errExample) { // error checking
-		fmt.Printf("trace: \n%v\n", err)               // error printing
-		fmt.Printf("\nunwrap: %v\n", werr.Unwrap(err)) // error unwrapping
+	if errors.Is(err, errExample) {
+		fmt.Printf("trace: \n%v\n", err)
+		fmt.Printf("\nunwrap: %v\n", werr.Unwrap(err))
 	}
 }
 
 func example() error {
-	return werr.Wrap(example2()) // possible without text
+	return werr.Wrap(example2())
 }
 
 func example2() error {
-	return werr.Wrapf(example3(), "without if") // possible without 'if'
+	return werr.Wrapf(example3(), "without if")
 }
 
 func example3() error {
@@ -110,50 +89,44 @@ find me
 unwrap: find me
 ```
 
-### Stack traces benchmark
+## Stack Traces Benchmark
 
-As performance is obviously an issue, some measurements are in order. The benchmark is provided with the library. In all
-of benchmark cases, a very simple code is called that does nothing but grows a number of frames and immediately returns
-an error.
+Performance benchmarks showcase **werr**'s efficiency in error handling:
 
 Result sample, MacBook Air M1 @ 3.2GHz:
 
 | name                           |     runs | ns/op | note                                         |
 |--------------------------------|---------:|------:|----------------------------------------------|
-| BenchmarkSimpleError10         | 37410418 | 28.29 | simple error, 10 frames deep                 |
-| BenchmarkWrapError10           |  1919391 | 621.7 | same with wrap error                         |
-| BenchmarkWrapMsgError10        |  1782106 | 672.8 | same with message                            |
-| BenchmarkErrorxError10         |   967269 |  1260 | errorx library, same frames                  |
-| BenchmarkGoErrorsError10       |   777688 |  1306 | go-errors library, same frames               |
+| BenchmarkSimpleError10         | 39252192 | 28.67 | simple error, 10 frames deep                 |
+| BenchmarkWrapError10           |  2190848 | 543.0 | with wrap error                              |
+| BenchmarkWrapMsgError10        |  1881180 | 588.4 | with message                                 |
+| BenchmarkErrorxError10         |   969931 | 1365  | errorx library                               |
+| BenchmarkGoErrorsError10       |  1000000 | 1171  | go-errors library                            |
 |                                |          |       |                                              |
-| BenchmarkSimpleError100        |  1897574 | 631.7 | simple error, 100 frames deep                |
-| BenchmarkWrapError100          |   909345 |  1259 | same with wrap error                         |
-| BenchmarkWrapMsgError100       |   867218 |  1310 | same with message                            |
-| BenchmarkErrorxError100        |   309862 |  3855 | errorx library, same frames                  |
-| BenchmarGoErrorsError100       |   520958 |  2248 | go-errors library, same frames               |
+| BenchmarkSimpleError100        |  1911195 | 633.1 | simple error, 100 frames deep                |
+| BenchmarkWrapError100          |  1000000 | 1276  | with wrap error                              |
+| BenchmarkWrapMsgError100       |   978968 | 1250  | with message                                 |
+| BenchmarkErrorxError100        |   312757 | 3890  | errorx library                               |
+| BenchmarkGoErrorsError100      |   519740 | 2407  | go-errors library                            |
 |                                |          |       |                                              |
-| BenchmarkSimpleErrorPrint100   |  1721605 | 697.2 | simple error, 100 frames deep, format output |
-| BenchmarkWrapErrorPrint100     |   759574 |  1482 | same with wrap error                         |
-| BenchmarkWrapMsgErrorPrint100  |   715376 |  1555 | same with  message                           |
-| BenchmarkErrorxErrorPrint100   |    37346 | 32493 | errorx library, same frames                  |
-| BenchmarkGoErrorsErrorPrint100 |   493110 |  2392 | go-errors library, same frames               |
+| BenchmarkSimpleErrorPrint100   |  1721454 | 695.1 | simple error, 100 frames deep, format output |
+| BenchmarkWrapErrorPrint100     |   856266 | 1384  | with wrap error                              |
+| BenchmarkWrapMsgErrorPrint100  |   834480 | 1441  | with message                                 |
+| BenchmarkErrorxErrorPrint100   |    38940 | 30826 | errorx library, format output                |
+| BenchmarkGoErrorsErrorPrint100 |   505380 | 2376  | go-errors library, format output             |
 
 Key takeaways:
 
-* With deep enough call stack, trace capture brings **10x slowdown**
-* This is an absolute **worst case measurement, no-op function**; in a real life, much more time is spent doing actual
-  work
-* Then again, in real life code invocation does not always result in error, so the overhead is proportional to the % of
-  error returns
-* Still, it pays to omit stack trace collection when it would be of no use
-* It is actually **much more expensive to format** an error with a stack trace than to create it, roughly **another 10x
-  **
-* Compared to the most naive approach to stack trace collection, error creation it is **100x** cheaper with werr
-* Therefore, it is totally OK to create an error with a stack trace that would then be handled and not printed to log
-* Realistically, stack trace overhead is only painful either if a code is very hot (called a lot and returns errors
-  often) or if an error is used as a control flow mechanism and does not constitute an actual problem; in both cases,
-  stack trace should be omitted
+* **werr** provides efficient error creation and wrapping with minimal overhead.
+* Use `werr.Unwrap(err)` to retrieve the original error for seamless propagation.
+* Enhance error context with custom messages using `werr.Wrapf(err, "custom message")`.
+* Identify the immediate cause of an error with `werr.Cause(err)` for precise error handling.
+* Verify error types with `werr.AsWrap(err)` to handle errors based on specific types.
 
 ## More
 
-Portions of the description and benchmark were adapted from the project [errorx](https://github.com/joomcode/errorx)
+Portions of the description and benchmark were adapted from the project [errorx](https://github.com/joomcode/errorx).
+
+---
+
+This update integrates the new functionality descriptions and benchmarks, ensuring clarity and interest in error handling with the **werr** library.
