@@ -25,11 +25,11 @@ var _ WrappedError = (*wrappedError)(nil)
 
 // wrappedError represents an error with additional context such as funcName, file, line and msg.
 type wrappedError struct {
-	funcName string // Function name in the format "<pkg>.<name>", e.g. "main.main".
-	file     string // File name of the location in this frame.
-	line     int    // Line number of the location in this frame.
-	err      error  // The original error.
-	msg      string // Optional message to help analyze the error.
+	funcName string // funcName (function name) in the format "<pkg>.<name>", e.g. "main.main".
+	file     string // file name of the location in this frame.
+	line     int    // line number of the location in this frame.
+	err      error  // err is original error.
+	msg      string // msg is optional message to help analyze the error.
 }
 
 // newError creates a new wrapped error with caller information and additional message.
@@ -91,7 +91,7 @@ func AsWrap(err error) (WrappedError, bool) {
 
 // Error returns a string representation of the wrapped error.
 func (e wrappedError) Error() string {
-	return defaultFormatter(e.file, e.line, e.funcName, e.err, e.msg)
+	return _defaultFormatter(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
 // Format returns a custom formatted string representation of the wrapped error.

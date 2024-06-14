@@ -8,6 +8,8 @@ import (
 
 type FormatFn func(file string, line int, funcName string, err error, msg string) string
 
+var _defaultFormatter FormatFn = defaultFormatter
+
 func defaultFormatter(file string, line int, funcName string, err error, msg string) string {
 	idx := strings.LastIndex(funcName, ".")
 	pkg := funcName[:idx]
@@ -24,4 +26,8 @@ func defaultFormatter(file string, line int, funcName string, err error, msg str
 	}
 
 	return source + "\t" + fn + msg + "\n" + err.Error()
+}
+
+func SetFormatter(fn FormatFn) {
+	_defaultFormatter = fn
 }
