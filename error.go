@@ -1,145 +1,72 @@
 package werr
 
-import (
-	"errors"
-)
-
-type WrappedError interface {
-	Error
-	Wrapped
+// Error represents an error with additional context such as funcName, file, line, and msg.
+type Error struct {
+	funcName string // funcName represents the fully qualified function name ("<pkg>.<name>").
+	file     string // file is the file name where the error occurred.
+	line     int    // line is the line number in the file where the error occurred.
+	err      error  // err is the original error that was wrapped.
+	msg      string // msg is an optional message to provide additional context for the error.
 }
 
-type Wrapped interface {
-	Cause() error
-	Unwrap() error
-}
-
-type Error interface {
-	File() string
-	FuncName() string
-	Line() int
-	Msg() string
-}
-
-var _ WrappedError = (*wrappedError)(nil)
-
-// wrappedError represents an error with additional context such as funcName, file, line and msg.
-type wrappedError struct {
-	funcName string // funcName (function name) in the format "<pkg>.<name>", e.g. "main.main".
-	file     string // file name of the location in this frame.
-	line     int    // line number of the location in this frame.
-	err      error  // err is original error.
-	msg      string // msg is optional message to help analyze the error.
-}
-
-// newError creates a new wrapped error with caller information and additional message.
+// newError creates a new wrapped error with caller information and an optional additional message.
 func newError(err error, msg string) error {
 	funcName, file, line := caller(defaultCallerSkip)
 
-	return wrappedError{
+	return Error{
 		file:     file,
 		funcName: funcName,
 		line:     line,
-
-		err: err,
-		msg: msg,
+		err:      err,
+		msg:      msg,
 	}
-}
-
-// Unwrap calls errors.Unwrap to retrieve the underlying error.
-func Unwrap(err error) error {
-	var wErr wrappedError
-	if errors.As(err, &wErr) {
-		return wErr.Unwrap()
-	}
-
-	return err
-}
-
-// UnwrapAll function recursively unwraps an error that implements the Unwrap() error method,
-// effectively retrieving the root cause error from a chain of wrapped errors.
-func UnwrapAll(err error) error {
-	for {
-		u, ok := err.(interface{ Unwrap() error })
-		if !ok {
-			return err
-		}
-
-		err = u.Unwrap()
-	}
-}
-
-// Cause returns the cause of the error if it is a wrappedError.
-func Cause(err error) error {
-	var wErr wrappedError
-	if errors.As(err, &wErr) {
-		return wErr.Cause()
-	}
-
-	return err
-}
-
-// AsWrap checks if the error is a wrappedError and returns it.
-func AsWrap(err error) (WrappedError, bool) {
-	var wErr wrappedError
-	if errors.As(err, &wErr) {
-		return wErr, true
-	}
-
-	return nil, false
-}
-
-// IsWrap checks if the provided error is of type wrappedError.
-func IsWrap(err error) bool {
-	_, ok := err.(wrappedError) //nolint: errorlint
-
-	return ok
 }
 
 // Error returns a string representation of the wrapped error.
-func (e wrappedError) Error() string {
+func (e Error) Error() string {
 	return _defaultFormatter(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
-// Format returns a custom formatted string representation of the wrapped error.
-func (e wrappedError) Format(fn FormatFn) string {
+// Format returns a custom formatted string representation of the wrapped error using a provided formatter function.
+func (e Error) Format(fn FormatFn) string {
 	return fn(e.file, e.line, e.funcName, e.err, e.msg)
 }
 
 // Unwrap returns the underlying error wrapped by this structure.
-func (e wrappedError) Unwrap() error {
+func (e Error) Unwrap() error {
 	return e.err
 }
 
-// Cause returns the cause of the wrapped error by recursively checking for wrappedError type
-// and calling Unwrap() on it.
-func (e wrappedError) Cause() error {
-	var wErr wrappedError
-	for errors.As(e.err, &wErr) {
-		e.err = wErr.Unwrap()
+// Cause returns the root cause of the wrapped error by recursively unwrapping it if it is also an Error.
+func (e Error) Cause() error {
+	for {
+		wrapped, ok := e.err.(Error) //nolint: errorlint
+		if !ok {
+			break
+		}
+		e.err = wrapped.Unwrap()
 	}
 
 	return e.err
 }
 
-// File returns the file information associated with the wrapped error.
-func (e wrappedError) File() string {
+// File returns the file path associated with the wrapped error.
+func (e Error) File() string {
 	return e.file
 }
 
-// Line returns the line information associated with the wrapped error.
-func (e wrappedError) Line() int {
+// Line returns the line number associated with the wrapped error.
+func (e Error) Line() int {
 	return e.line
 }
 
-// FuncName returns the function name associated with the wrapped error.
-//
+// FuncName returns the fully qualified function name associated with the wrapped error.
 // Example: "main.main".
-func (e wrappedError) FuncName() string {
+func (e Error) FuncName() string {
 	return e.funcName
 }
 
-// Msg returns the additional message associated with the wrapped error.
-func (e wrappedError) Msg() string {
+// Message returns the additional message associated with the wrapped error.
+func (e Error) Message() string {
 	return e.msg
 }

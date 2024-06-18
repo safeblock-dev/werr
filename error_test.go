@@ -8,160 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCause(t *testing.T) {
-	t.Parallel()
-
-	t.Run("when wrap chain", func(t *testing.T) {
-		t.Parallel()
-
-		err1 := errors.New("original error")
-		err2 := fmt.Errorf("fmt wrap: %w", err1)
-		err3 := newError(err2, "wrap level 1")
-		err4 := newError(err3, "wrap level 2")
-
-		require.Equal(t, err2, Cause(err4))
-	})
-
-	t.Run("when nil", func(t *testing.T) {
-		t.Parallel()
-
-		require.NoError(t, Cause(nil))
-	})
-
-	t.Run("when without wrap", func(t *testing.T) {
-		t.Parallel()
-
-		errWithoutWrap := errors.New("error without wrap")
-		require.Equal(t, errWithoutWrap, Cause(errWithoutWrap))
-	})
-}
-
-func TestUnwrap(t *testing.T) {
-	t.Parallel()
-
-	t.Run("when wrap chain", func(t *testing.T) {
-		t.Parallel()
-
-		err1 := errors.New("original error")
-		err2 := fmt.Errorf("fmt wrap: %w", err1)
-		err3 := newError(err2, "wrap level 1")
-		err4 := newError(err3, "wrap level 2")
-
-		require.Equal(t, err3, Unwrap(err4))
-		require.Equal(t, err2, Unwrap(err3))
-		require.Equal(t, err2, Unwrap(err2))
-		require.Equal(t, err1, Unwrap(err1))
-	})
-
-	t.Run("when nil", func(t *testing.T) {
-		t.Parallel()
-
-		require.NoError(t, Unwrap(nil))
-	})
-}
-
-func TestUnwrapAll(t *testing.T) {
-	t.Parallel()
-
-	t.Run("when wrap chain", func(t *testing.T) {
-		t.Parallel()
-
-		err1 := errors.New("original error")
-		err2 := fmt.Errorf("fmt wrap: %w", err1)
-		err3 := newError(err2, "wrap level 1")
-		err4 := newError(err3, "wrap level 2")
-
-		require.Equal(t, err1, UnwrapAll(err4))
-		require.Equal(t, err1, UnwrapAll(err3))
-		require.Equal(t, err1, UnwrapAll(err2))
-		require.Equal(t, err1, UnwrapAll(err1))
-	})
-
-	t.Run("when nil", func(t *testing.T) {
-		t.Parallel()
-
-		require.NoError(t, UnwrapAll(nil))
-	})
-}
-
-func TestAsWrap(t *testing.T) {
-	t.Parallel()
-
-	// Test case when the error is not a wrappedError
-	t.Run("not wrappedError", func(t *testing.T) {
-		t.Parallel()
-
-		err := errors.New("not a wrapped error")
-		_, ok := AsWrap(err)
-		require.False(t, ok)
-	})
-
-	// Test case when the error is a wrappedError
-	t.Run("is wrappedError", func(t *testing.T) {
-		t.Parallel()
-
-		err := errors.New("original error")
-		wrappedErr := newError(err, "additional message")
-		wErr, ok := AsWrap(wrappedErr)
-		require.True(t, ok)
-		require.Equal(t, wrappedErr, wErr)
-	})
-
-	// Test case when the error is a nested wrappedError
-	t.Run("nested wrappedError", func(t *testing.T) {
-		t.Parallel()
-
-		err := errors.New("original error")
-		wrappedErr1 := newError(err, "wrap level 1")
-		wrappedErr2 := newError(wrappedErr1, "wrap level 2")
-		wErr, ok := AsWrap(wrappedErr2)
-		require.True(t, ok)
-		require.Equal(t, wrappedErr2, wErr)
-	})
-
-	// Test case when the error is nil
-	t.Run("nil error", func(t *testing.T) {
-		t.Parallel()
-
-		_, ok := AsWrap(nil)
-		require.False(t, ok)
-	})
-}
-
-func TestIsWrap(t *testing.T) {
-	t.Parallel()
-
-	t.Run("WrappedError", func(t *testing.T) {
-		t.Parallel()
-
-		require.True(t, IsWrap(Wrap(errors.New("wrapped error"))))
-	})
-
-	t.Run("CustomError", func(t *testing.T) {
-		t.Parallel()
-
-		require.False(t, IsWrap(errors.New("custom error")))
-	})
-
-	t.Run("NilError", func(t *testing.T) {
-		t.Parallel()
-
-		require.False(t, IsWrap(nil))
-	})
-}
-
 //
-// WrappedError
+// Error
 //
 
-func TestWrappedError_Error(t *testing.T) {
+func TestError_Error(t *testing.T) {
 	t.Parallel()
 
 	err := errors.New("original error")
 
 	t.Run("with message", func(t *testing.T) {
 		t.Parallel()
-		wrappedErr := wrappedError{
+		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -175,14 +33,14 @@ func TestWrappedError_Error(t *testing.T) {
 
 	t.Run("when wrap chain", func(t *testing.T) {
 		t.Parallel()
-		subWrappedErr := wrappedError{
+		subWrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main2",
 			line:     84,
 			err:      err,
 			msg:      "",
 		}
-		wrappedErr := wrappedError{
+		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -196,7 +54,7 @@ func TestWrappedError_Error(t *testing.T) {
 
 	t.Run("without message", func(t *testing.T) {
 		t.Parallel()
-		wrappedErr := wrappedError{
+		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -208,7 +66,7 @@ func TestWrappedError_Error(t *testing.T) {
 	})
 }
 
-func TestWrappedError_Cause(t *testing.T) {
+func TestError_Cause(t *testing.T) {
 	t.Parallel()
 
 	// Mock errors for testing
@@ -221,7 +79,7 @@ func TestWrappedError_Cause(t *testing.T) {
 		t.Parallel()
 
 		// Create a wrapped error instance
-		wrappedErr := wrappedError{
+		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -238,7 +96,7 @@ func TestWrappedError_Cause(t *testing.T) {
 		t.Parallel()
 
 		// Create a nested chain of wrapped errors
-		wrappedErr4 := wrappedError{
+		wrappedErr4 := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -255,7 +113,7 @@ func TestWrappedError_Cause(t *testing.T) {
 		t.Parallel()
 
 		// Create a wrapped error instance with nil error
-		wrappedErr := wrappedError{
+		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -332,23 +190,23 @@ func TestPkgErrorsAs(t *testing.T) {
 	err2 := newError(err1, "wrap level 1")
 	err3 := newError(err2, "wrap level 2")
 
-	t.Run("as wrappedError level 2", func(t *testing.T) {
+	t.Run("as Error level 2", func(t *testing.T) {
 		t.Parallel()
-		var wErr wrappedError
+		var wErr Error
 		require.ErrorAs(t, err3, &wErr)
 		require.Equal(t, wErr.Error(), err3.Error())
 	})
 
-	t.Run("as wrappedError level 1", func(t *testing.T) {
+	t.Run("as Error level 1", func(t *testing.T) {
 		t.Parallel()
-		var wErr wrappedError
+		var wErr Error
 		require.ErrorAs(t, err2, &wErr)
 		require.Equal(t, wErr.Error(), err2.Error())
 	})
 
 	t.Run("as different error type", func(t *testing.T) {
 		t.Parallel()
-		var otherErr *wrappedError
+		var otherErr *Error
 		otherErrorInstance := errors.New("different error")
 		require.False(t, errors.As(otherErrorInstance, &otherErr))
 	})

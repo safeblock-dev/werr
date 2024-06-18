@@ -27,3 +27,30 @@ func Wrapf(err error, format string, a ...any) error {
 
 	return newError(err, fmt.Sprintf(format, a...))
 }
+
+// Unwrap retrieves the underlying error wrapped by the provided error.
+// If the error is of type Error, it returns the original error stored within it.
+// Otherwise, it returns nil.
+func Unwrap(err error) error {
+	if e, ok := err.(Error); ok { //nolint: errorlint
+		return e.Unwrap()
+	}
+
+	return nil
+}
+
+// Cause returns the root cause of the error if it is an Error.
+func Cause(err error) error {
+	if e, ok := err.(Error); ok { //nolint: errorlint
+		return e.Cause()
+	}
+
+	return err
+}
+
+// IsWrap checks if the provided error is of type Error.
+func IsWrap(err error) bool {
+	_, ok := err.(Error) //nolint: errorlint
+
+	return ok
+}
