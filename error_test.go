@@ -128,6 +128,28 @@ func TestAsWrap(t *testing.T) {
 	})
 }
 
+func TestIsWrap(t *testing.T) {
+	t.Parallel()
+
+	t.Run("WrappedError", func(t *testing.T) {
+		t.Parallel()
+
+		require.True(t, IsWrap(Wrap(errors.New("wrapped error"))))
+	})
+
+	t.Run("CustomError", func(t *testing.T) {
+		t.Parallel()
+
+		require.False(t, IsWrap(errors.New("custom error")))
+	})
+
+	t.Run("NilError", func(t *testing.T) {
+		t.Parallel()
+
+		require.False(t, IsWrap(nil))
+	})
+}
+
 //
 // WrappedError
 //

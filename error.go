@@ -89,6 +89,13 @@ func AsWrap(err error) (WrappedError, bool) {
 	return nil, false
 }
 
+// IsWrap checks if the provided error is of type wrappedError.
+func IsWrap(err error) bool {
+	_, ok := err.(wrappedError) //nolint: errorlint
+
+	return ok
+}
+
 // Error returns a string representation of the wrapped error.
 func (e wrappedError) Error() string {
 	return _defaultFormatter(e.file, e.line, e.funcName, e.err, e.msg)
