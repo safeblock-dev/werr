@@ -6,7 +6,7 @@ import (
 )
 
 // PanicToError converts a recovered panic to an error.
-func PanicToError(p interface{}) error {
+func PanicToError(p any) error {
 	const msg = "panic recovered"
 
 	switch v := p.(type) {
