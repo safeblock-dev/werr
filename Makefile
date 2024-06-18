@@ -25,5 +25,4 @@ bench: ## Run benchmarks. See https://pkg.go.dev/cmd/go#hdr-Testing_flags
 
 .PHONY: update
 update: ## Update packages
-	go get -u ./... && go mod tidy
-	cd benchmark && go get -u ./... && go mod tidy
+	@find . -name "go.mod" -execdir sh -c 'echo "Updating $$(pwd)"; go get -u ./... && go mod tidy' \;
