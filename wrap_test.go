@@ -68,6 +68,44 @@ func TestWrapf(t *testing.T) {
 	})
 }
 
+func TestWrapt(t *testing.T) {
+	t.Parallel()
+
+	fn := func(err error) (int, error) {
+		return 100, err
+	}
+
+	t.Run("with error", func(t *testing.T) {
+		t.Parallel()
+		originalErr := errors.New("original error")
+		_, wrappedErr := werr.Wrapt(fn(originalErr))
+
+		// Ensure that the wrapped error is of type error
+		require.IsType(t, werr.Error{}, wrappedErr)
+
+		// Ensure that the wrapped error contains the original error
+		require.ErrorIs(t, wrappedErr, originalErr)
+	})
+
+	t.Run("when nil", func(t *testing.T) {
+		t.Parallel()
+		// Ensure that wrapping a nil error results in nil
+		v, err := werr.Wrapt(fn(nil))
+		require.NoError(t, err)
+		require.NotEmpty(t, v)
+	})
+
+	t.Run("check skip count is sufficient", func(t *testing.T) {
+		t.Parallel()
+		originalErr := errors.New("original error")
+		_, wrappedErr := werr.Wrapt(fn(originalErr))
+
+		// Ensure the skip count 3 is enough
+		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:101\tfunc4()\noriginal error"
+		require.Equal(t, exp, wrappedErr.Error())
+	})
+}
+
 func TestCause(t *testing.T) {
 	t.Parallel()
 
