@@ -20,7 +20,7 @@ func TestDefaultFormatter(t *testing.T) {
 	require.Equal(t, exp, format)
 }
 
-//nolint: paralleltest
+// nolint: paralleltest
 func TestSetFormatter(t *testing.T) {
 	testCases := []struct {
 		name      string
