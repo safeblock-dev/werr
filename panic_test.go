@@ -53,6 +53,8 @@ func TestPanicToError(t *testing.T) {
 
 		err := werr.PanicToError(v)
 		require.Error(t, err)
+
+		require.Contains(t, err.Error(), "runtime/debug.Stack()")
 		require.Contains(t, err.Error(), "runtime error: index out of range [1] with length 0")
 	})
 }

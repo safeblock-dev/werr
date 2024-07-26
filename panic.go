@@ -3,11 +3,13 @@ package werr
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 )
 
 // PanicToError converts a recovered panic to an error.
 func PanicToError(p any) error {
-	const msg = "panic recovered"
+	msg := "panic recovered\n"
+	msg += string(debug.Stack())
 
 	switch v := p.(type) {
 	case nil:
