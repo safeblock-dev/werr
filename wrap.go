@@ -28,6 +28,18 @@ func Wrapf(err error, format string, a ...any) error {
 	return newError(err, fmt.Sprintf(format, a...))
 }
 
+// Wrapt takes a value, an error and returns a new wrapped error.
+// If the input error (err) is nil, the function returns nil.
+// Otherwise, it creates a new wrapped error using the input error
+// and an empty message text.
+func Wrapt[T interface{}](val T, err error) (T, error) {
+	if err == nil {
+		return val, nil
+	}
+
+	return val, newError(err, "")
+}
+
 // Unwrap retrieves the underlying error wrapped by the provided error.
 // If the error is of type Error, it returns the original error stored within it.
 // Otherwise, it returns nil.
