@@ -16,31 +16,45 @@ func UnwrapAll(err error) error {
 	}
 }
 
-// Arg syntactic sugar. Returns a message in the format "arg=?".
+// Arg is syntactic sugar. Returns a message in the format "arg=?".
 //
-//	Example 0:
-//	func Calculate(x, y int) {
-//		// calculate...
-//		return werr.Wrapf(err, werr.Arg(x,y))
-//	}
-//	// Output:	"arg=[100, 50]"
+//	Code:
 //
-//	Example 1:
 //	type CalculateParams struct {
-//		X, Y int
+//	  X, Y int
 //	}
-//	func Calculate(arg CalculateParams) {
-//		// calculate...
-//		return werr.Wrapf(err, werr.Arg(arg))
+//
+//	func Calculate(arg CalculateParams) (int, error) {
+//	  if arg.X == 0 && arg.Y == 0 {
+//	    return 0, werr.Wrapf(errors.New("zero arguments"), werr.Arg(arg))
+//	  }
+//
+//	  return arg.X+arg.Y, nil
 //	}
-//	// Output:	"arg={X:100 Y:50}"
-func Arg(arg ...interface{}) string {
-	switch len(arg) {
-	case 0:
+//
+//	Output:	"arg={X:100 Y:50}"
+func Arg(arg interface{}) string {
+	return fmt.Sprintf("arg=%+v", arg)
+}
+
+// Args is syntactic sugar. Returns a message in the format "args=?".
+//
+//	Code:
+//
+//	func Calculate(x, y int) (int, error) {
+//	  if x == 0 && y == 0 {
+//	    return 0, werr.Wrapf(errors.New("zero arguments"), werr.Args(x, y))
+//	  }
+//
+//	  return x+y, nil
+//	}
+//
+//	Output:	"arg=[100, 50]"
+func Args(args ...interface{}) string {
+	if len(args) == 0 {
 		return ""
-	case 1:
-		return fmt.Sprintf("arg=%+v", arg[0])
-	default:
-		return fmt.Sprintf("arg=%+v", arg)
 	}
+
+	return fmt.Sprintf("args=%+v", args)
+
 }

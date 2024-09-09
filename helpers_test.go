@@ -57,5 +57,30 @@ func TestArg(t *testing.T) {
 		act := werr.Arg(arg)
 		require.Equal(t, fmt.Sprintf("arg=%+v", arg), act)
 	})
+}
 
+func TestArgs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("when arg is equal primitive", func(t *testing.T) {
+		arg := "test"
+		act := werr.Args(arg)
+		require.Equal(t, fmt.Sprintf("args=[%+v]", arg), act)
+	})
+
+	t.Run("when arg is equal map", func(t *testing.T) {
+		arg := map[string]interface{}{
+			"foo":  "bar",
+			"bar":  1,
+			"buzz": false,
+		}
+		act := werr.Args(arg)
+		require.Equal(t, fmt.Sprintf("args=[%+v]", arg), act)
+	})
+
+	t.Run("when arg is equal slice", func(t *testing.T) {
+		arg := []interface{}{"foo", 1, false}
+		act := werr.Args(arg)
+		require.Equal(t, fmt.Sprintf("args=[%+v]", arg), act)
+	})
 }
