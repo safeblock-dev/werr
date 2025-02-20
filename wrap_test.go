@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/safeblock-dev/werr"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safeblock-dev/werr"
 )
 
 func TestWrap(t *testing.T) {
@@ -14,6 +15,7 @@ func TestWrap(t *testing.T) {
 
 	t.Run("with error", func(t *testing.T) {
 		t.Parallel()
+
 		originalErr := errors.New("original error")
 		wrappedErr := werr.Wrap(originalErr)
 
@@ -32,11 +34,13 @@ func TestWrap(t *testing.T) {
 
 	t.Run("check skip count is sufficient", func(t *testing.T) {
 		t.Parallel()
+
 		originalErr := errors.New("original error")
 		wrappedErr := werr.Wrap(originalErr)
 
 		// Ensure the skip count 3 is enough
-		const exp = "github.com/safeblock-dev/werr_test.TestWrap/wrap_test.go:36\tfunc3()\noriginal error"
+		const exp = "github.com/safeblock-dev/werr_test.TestWrap/wrap_test.go:39\tfunc3()\noriginal error"
+
 		require.Equal(t, exp, wrappedErr.Error())
 	})
 }
@@ -46,6 +50,7 @@ func TestWrapf(t *testing.T) {
 
 	t.Run("with error", func(t *testing.T) {
 		t.Parallel()
+
 		originalErr := errors.New("original error")
 		wrappedErr := werr.Wrapf(originalErr, "additional message: %s", "some details")
 
@@ -61,6 +66,7 @@ func TestWrapf(t *testing.T) {
 
 	t.Run("when nil", func(t *testing.T) {
 		t.Parallel()
+
 		wrappedErr := werr.Wrapf(nil, "additional message: %s", "some details")
 
 		// Ensure that wrapping a nil error results in nil
@@ -77,6 +83,7 @@ func TestWrapt(t *testing.T) {
 
 	t.Run("with error", func(t *testing.T) {
 		t.Parallel()
+
 		originalErr := errors.New("original error")
 		_, wrappedErr := werr.Wrapt(fn(originalErr))
 
@@ -97,11 +104,13 @@ func TestWrapt(t *testing.T) {
 
 	t.Run("check skip count is sufficient", func(t *testing.T) {
 		t.Parallel()
+
 		originalErr := errors.New("original error")
 		_, wrappedErr := werr.Wrapt(fn(originalErr))
 
 		// Ensure the skip count 3 is enough
-		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:101\tfunc4()\noriginal error"
+		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:109\tfunc4()\noriginal error"
+
 		require.Equal(t, exp, wrappedErr.Error())
 	})
 }

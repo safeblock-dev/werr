@@ -44,6 +44,7 @@ func (e Error) Cause() error {
 		if !ok {
 			break
 		}
+
 		e.err = wrapped.Unwrap()
 	}
 

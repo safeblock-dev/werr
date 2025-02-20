@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/safeblock-dev/werr"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safeblock-dev/werr"
 )
 
 func TestUnwrapAll(t *testing.T) {
@@ -37,12 +38,16 @@ func TestArg(t *testing.T) {
 	t.Parallel()
 
 	t.Run("when arg is equal primitive", func(t *testing.T) {
+		t.Parallel()
+
 		arg := "test"
 		act := werr.Arg(arg)
 		require.Equal(t, fmt.Sprintf("arg=%+v", arg), act)
 	})
 
 	t.Run("when arg is equal map", func(t *testing.T) {
+		t.Parallel()
+
 		arg := map[string]interface{}{
 			"foo":  "bar",
 			"bar":  1,
@@ -53,6 +58,8 @@ func TestArg(t *testing.T) {
 	})
 
 	t.Run("when arg is equal slice", func(t *testing.T) {
+		t.Parallel()
+
 		arg := []interface{}{"foo", 1, false}
 		act := werr.Arg(arg)
 		require.Equal(t, fmt.Sprintf("arg=%+v", arg), act)
@@ -63,12 +70,16 @@ func TestArgs(t *testing.T) {
 	t.Parallel()
 
 	t.Run("when arg is equal primitive", func(t *testing.T) {
+		t.Parallel()
+
 		arg := "test"
 		act := werr.Args(arg)
 		require.Equal(t, fmt.Sprintf("args=[%+v]", arg), act)
 	})
 
 	t.Run("when arg is equal map", func(t *testing.T) {
+		t.Parallel()
+
 		arg := map[string]interface{}{
 			"foo":  "bar",
 			"bar":  1,
@@ -79,6 +90,8 @@ func TestArgs(t *testing.T) {
 	})
 
 	t.Run("when arg is equal slice", func(t *testing.T) {
+		t.Parallel()
+
 		arg := []interface{}{"foo", 1, false}
 		act := werr.Args(arg)
 		require.Equal(t, fmt.Sprintf("args=[%+v]", arg), act)

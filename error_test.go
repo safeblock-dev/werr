@@ -19,6 +19,7 @@ func TestError_Error(t *testing.T) {
 
 	t.Run("with message", func(t *testing.T) {
 		t.Parallel()
+
 		wrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main",
@@ -33,6 +34,7 @@ func TestError_Error(t *testing.T) {
 
 	t.Run("when wrap chain", func(t *testing.T) {
 		t.Parallel()
+
 		subWrappedErr := Error{
 			file:     "main.go",
 			funcName: "main.main2",
@@ -54,11 +56,13 @@ func TestError_Error(t *testing.T) {
 
 	t.Run("without message", func(t *testing.T) {
 		t.Parallel()
+
 		wrappedErr := Error{
+			err:      err,
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
-			err:      err,
+			msg:      "",
 		}
 
 		exp := "main/main.go:42\tmain()\noriginal error"
@@ -114,6 +118,7 @@ func TestError_Cause(t *testing.T) {
 
 		// Create a wrapped error instance with nil error
 		wrappedErr := Error{
+			err:      nil,
 			file:     "main.go",
 			funcName: "main.main",
 			line:     42,
@@ -178,6 +183,7 @@ func TestPkgErrorsIs(t *testing.T) {
 
 	t.Run("is different error", func(t *testing.T) {
 		t.Parallel()
+
 		otherErr := errors.New("different error")
 		require.NotErrorIs(t, err4, otherErr)
 	})
@@ -192,21 +198,27 @@ func TestPkgErrorsAs(t *testing.T) {
 
 	t.Run("as Error level 2", func(t *testing.T) {
 		t.Parallel()
+
 		var wErr Error
+
 		require.ErrorAs(t, err3, &wErr)
 		require.Equal(t, wErr.Error(), err3.Error())
 	})
 
 	t.Run("as Error level 1", func(t *testing.T) {
 		t.Parallel()
+
 		var wErr Error
+
 		require.ErrorAs(t, err2, &wErr)
 		require.Equal(t, wErr.Error(), err2.Error())
 	})
 
 	t.Run("as different error type", func(t *testing.T) {
 		t.Parallel()
+
 		var otherErr *Error
+
 		otherErrorInstance := errors.New("different error")
 		require.False(t, errors.As(otherErrorInstance, &otherErr))
 	})

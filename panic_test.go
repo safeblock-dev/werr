@@ -4,8 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/safeblock-dev/werr"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safeblock-dev/werr"
 )
 
 func TestPanicToError(t *testing.T) {
@@ -13,12 +14,14 @@ func TestPanicToError(t *testing.T) {
 
 	t.Run("when nil", func(t *testing.T) {
 		t.Parallel()
+
 		err := werr.PanicToError(nil)
 		require.NoError(t, err)
 	})
 
 	t.Run("when error", func(t *testing.T) {
 		t.Parallel()
+
 		inputErr := errors.New("some error")
 		err := werr.PanicToError(inputErr)
 		require.Error(t, err)
@@ -27,6 +30,7 @@ func TestPanicToError(t *testing.T) {
 
 	t.Run("when string", func(t *testing.T) {
 		t.Parallel()
+
 		err := werr.PanicToError("some string panic")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "panic recovered")
@@ -35,6 +39,7 @@ func TestPanicToError(t *testing.T) {
 
 	t.Run("other type", func(t *testing.T) {
 		t.Parallel()
+
 		err := werr.PanicToError(123)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "panic recovered")
@@ -45,6 +50,7 @@ func TestPanicToError(t *testing.T) {
 		t.Parallel()
 
 		var v any
+
 		func() {
 			defer func() { v = recover() }()
 
