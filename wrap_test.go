@@ -68,6 +68,40 @@ func TestWrapf(t *testing.T) {
 	})
 }
 
+func TestWrapfWithArgs(t *testing.T) {
+	t.Parallel()
+
+	originalErr := errors.New("original error")
+
+	t.Run("when arg is equal primitive", func(t *testing.T) {
+		t.Parallel()
+
+		arg := "test"
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
+		require.Equal(t, "args=[test]", act)
+	})
+
+	t.Run("when arg is equal map", func(t *testing.T) {
+		t.Parallel()
+
+		arg := map[string]interface{}{
+			"foo":  "bar",
+			"bar":  1,
+			"buzz": false,
+		}
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
+		require.Equal(t, "args=[map[bar:1 buzz:false foo:bar]]", act)
+	})
+
+	t.Run("when arg is equal slice", func(t *testing.T) {
+		t.Parallel()
+
+		arg := []interface{}{"foo", 1, false}
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
+		require.Equal(t, "args=[[foo 1 false]]", act)
+	})
+}
+
 func TestWrapt(t *testing.T) {
 	t.Parallel()
 
@@ -101,7 +135,7 @@ func TestWrapt(t *testing.T) {
 		_, wrappedErr := werr.Wrapt(fn(originalErr))
 
 		// Ensure the skip count 3 is enough
-		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:101\tfunc4()\noriginal error"
+		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:135\tfunc4()\noriginal error"
 		require.Equal(t, exp, wrappedErr.Error())
 	})
 }
