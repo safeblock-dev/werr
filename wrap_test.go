@@ -143,7 +143,8 @@ func TestWrapt(t *testing.T) {
 		_, wrappedErr := werr.Wrapt(fn(originalErr))
 
 		// Ensure the skip count 3 is enough
-		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:135\tfunc4()\noriginal error"
+		const exp = "github.com/safeblock-dev/werr_test.TestWrapt/wrap_test.go:143\tfunc4()\noriginal error"
+
 		require.Equal(t, exp, wrappedErr.Error())
 	})
 }
