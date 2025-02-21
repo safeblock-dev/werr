@@ -21,6 +21,6 @@ func UnwrapAll(err error) error {
 // Args converts a list of variadic arguments into a slice.
 // It is a generic helper function that works with any type.
 // Example: werr.Wrapf(errors.New("error"), werr.ArgsFormat, werr.Args("arg", 1)).
-func Args[T any](args ...T) []T {
+func Args(args ...any) []any {
 	return args
 }

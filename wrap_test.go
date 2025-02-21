@@ -82,29 +82,29 @@ func TestWrapfWithArgs(t *testing.T) {
 	t.Run("when arg is equal primitive", func(t *testing.T) {
 		t.Parallel()
 
-		arg := "test"
-		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
+		args := werr.Args("test")
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, args).(werr.Error).Message()
 		require.Equal(t, "args=[test]", act)
 	})
 
 	t.Run("when arg is equal map", func(t *testing.T) {
 		t.Parallel()
 
-		arg := map[string]interface{}{
+		args := werr.Args(map[string]any{
 			"foo":  "bar",
 			"bar":  1,
 			"buzz": false,
-		}
-		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
+		})
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, args).(werr.Error).Message()
 		require.Equal(t, "args=[map[bar:1 buzz:false foo:bar]]", act)
 	})
 
 	t.Run("when arg is equal slice", func(t *testing.T) {
 		t.Parallel()
 
-		arg := []interface{}{"foo", 1, false}
-		act := werr.Wrapf(originalErr, werr.ArgsFormat, werr.Args(arg)).(werr.Error).Message()
-		require.Equal(t, "args=[[foo 1 false]]", act)
+		args := werr.Args("foo", 1, false)
+		act := werr.Wrapf(originalErr, werr.ArgsFormat, args).(werr.Error).Message()
+		require.Equal(t, "args=[foo 1 false]", act)
 	})
 }
 
