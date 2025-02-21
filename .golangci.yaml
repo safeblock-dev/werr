@@ -34,7 +34,9 @@ issues:
       linters: [ godot ]
     - path: "_test\\.go"
       linters:
-        - err113
-        - dupl
-        - gosec
         - asasalint
+        - dupl
+        - err113
+        - errorlint
+        - forcetypeassert
+        - gosec
