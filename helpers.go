@@ -12,6 +12,7 @@ func UnwrapAll(err error) error {
 		if !ok {
 			return err
 		}
+
 		err = u.Unwrap()
 	}
 }
@@ -56,5 +57,4 @@ func Args(args ...interface{}) string {
 	}
 
 	return fmt.Sprintf("args=%+v", args)
-
 }
