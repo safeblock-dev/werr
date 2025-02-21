@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/safeblock-dev/werr"
 	"github.com/stretchr/testify/require"
+
+	"github.com/safeblock-dev/werr"
 )
 
 func TestUnwrapAll(t *testing.T) {

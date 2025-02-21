@@ -13,6 +13,7 @@ func UnwrapAll(err error) error {
 		if !ok {
 			return err
 		}
+
 		err = u.Unwrap()
 	}
 }
