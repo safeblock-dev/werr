@@ -25,6 +25,10 @@ func Wrapf(err error, format string, a ...any) error {
 		return nil
 	}
 
+	if format == ArgsFormat {
+		return newError(err, fmt.Sprintf(format, a))
+	}
+
 	return newError(err, fmt.Sprintf(format, a...))
 }
 
